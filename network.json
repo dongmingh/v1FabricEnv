@@ -32,7 +32,7 @@
             "container_name": "cop0"
         },
         "orderer": {
-            "image": "hyperledger/fabric-orderer",
+            "image": "rameshthoomu/fabric-orderer-x86_64",
             "restart": "unless-stopped",
             "environment": {
                 "ORDERER_GENERAL_LEDGERTYPE": "ram",
@@ -68,7 +68,7 @@
             ]
         },
         "peer": {
-            "image": "hyperledger/fabric-peer",
+            "image": "rameshthoomu/fabric-peer-x86_64",
             "restart": "unless-stopped",
             "environment": {
                  "CORE_PEER_ID": "peer",
@@ -109,7 +109,7 @@
         },
         "cli": {
             "container_name": "cli",
-            "image": "hyperledger/fabric-peer",
+            "image": "rameshthoomu/fabric-peer-x86_64",
             "tty": "true",
             "environment": {
                   "GOPATH":"/opt/gopath",
