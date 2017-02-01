@@ -47,6 +47,10 @@ var CDB=0;
 var KAFKA=0;
 var tmp;
 
+if ( addBroker > 0 ) {
+   KAFKA=1;
+}
+
 if ( (dbType == 'couch') || (dbType == 'level') ){
    CDB=1;
 }
@@ -216,14 +220,21 @@ for ( i0=0; i0<top_key.length; i0++ ) {
                                             buff = buff + ']' + '\n';
                                             fs.appendFileSync(dFile, buff);
                                         }
-                                    } else if ( lvl3_key[m] == 'ORDERER_GENESIS_ORDERERTYPE' ) {
-                                        if ( dbType == 'kafka' ) {
+                                    } else if ( lvl3_key[m] == 'ORDERER_GENERAL_ORDERERTYPE' ) {
+                                        if ( addBroker > 0 ) {
                                             buff = '  ' + '    - ' + lvl3_key[m] + '=' + 'kafka' + '\n';
                                             fs.appendFileSync(dFile, buff);
-                                        }
-                                        if ( dbType == 'level' ) {
+                                        } else {
                                             buff = '  ' + '    - ' + lvl3_key[m] + '=' + 'solo' + '\n';
                                             fs.appendFileSync(dFile, buff);
+                                        }
+                                    } else if ( ( lvl3_key[m] == 'ORDERER_GENERAL_GENESISMETHOD' ) || ( lvl3_key[m] == 'ORDERER_GENERAL_GENESISFILE' ) ) {
+                                        if ( addBroker > 0 ) {
+                                            buff = '  ' + '    - ' + lvl3_key[m] + '=' + lvl2_obj[lvl3_key[m]] + '\n';
+                                            fs.appendFileSync(dFile, buff);
+                                        } else {
+                                            //buff = '  ' + '    - ' + lvl3_key[m] + '=' + 'solo' + '\n';
+                                            //fs.appendFileSync(dFile, buff);
                                         }
                                     } else {
                                         buff = '  ' + '    - ' + lvl3_key[m] + '=' +lvl2_obj[lvl3_key[m]] + '\n';
@@ -245,10 +256,9 @@ for ( i0=0; i0<top_key.length; i0++ ) {
                                 buff = '  ' + '  ' + lvl2_key[k] + ': ' + '\n';
                                 fs.appendFileSync(dFile, buff);
                                 tmp_port = ordererPort + v;
-                                //if ( KAFKA==1 ) {
-                                    buff = '  ' + '    - ' + tmp_port +':' + ordererPort + '\n' ;
-                                    fs.appendFileSync(dFile, buff);
-                                //}
+
+                                buff = '  ' + '    - ' + tmp_port +':' + ordererPort + '\n' ;
+                                fs.appendFileSync(dFile, buff);
 
                         } else if ( (lvl2_key[k] == 'depends_on') ) {
                             if ( addBroker > 0 ) {
@@ -256,6 +266,9 @@ for ( i0=0; i0<top_key.length; i0++ ) {
                                 lvl3_key = Object.keys(lvl2_obj);
 
                                 buff = '  ' + '  ' + lvl2_key[k] + ': ' + '\n';
+                                fs.appendFileSync(dFile, buff);
+
+                                buff = '  ' + '    - ' + 'zookeeper' + '\n' ;
                                 fs.appendFileSync(dFile, buff);
                                 if ( KAFKA==1 ) {
                                     for (n=0; n<addBroker; n++) {
@@ -279,7 +292,6 @@ for ( i0=0; i0<top_key.length; i0++ ) {
 
                 }
              } else if (lvl1_key[i] == 'kafka' ) {
-                KAFKA=1;
                 for ( v = 0; v < addBroker; v++ ) {
                     tmp_name = lvl1_key[i] + v;
                     tmp_port = vp0Port + v;
@@ -310,6 +322,52 @@ for ( i0=0; i0<top_key.length; i0++ ) {
                                     || ( lvl2_key[k] == 'restart') ) {
                             buff = '  ' + '  ' + lvl2_key[k] + ': ' + lvl1_obj[lvl2_key[k]] + '\n';
                             fs.appendFileSync(dFile, buff);
+                        } else if ( lvl2_key[k] == 'container_name' ) {
+                            buff = '  ' + '  ' + lvl2_key[k] + ': ' + tmp_name + '\n';
+                            fs.appendFileSync(dFile, buff);
+
+                        } else {
+                            buff = '  ' + '  ' + lvl2_key[k] + ': ' + '\n';
+                            fs.appendFileSync(dFile, buff);
+
+                            buff = '  ' + '    - ' + lvl1_obj[lvl2_key[k]] + '\n';
+                            fs.appendFileSync(dFile, buff);
+
+                        }
+                    }
+                    // add a blank line
+                    buff = '\n';
+                    fs.appendFileSync(dFile, buff);
+
+                }
+             } else if (lvl1_key[i] == 'zookeeper' ) {
+                if ( KAFKA == 1 ) {
+                    tmp_name = lvl1_key[i];
+                    buff = '  ' + tmp_name +':' + '\n';
+                    fs.appendFileSync(dFile, buff);
+
+                    // header 3
+                    for ( k=0; k<lvl2_key.length; k++ ) {
+                        if ( (lvl2_key[k] == 'environment') ) {
+                                lvl2_obj = lvl1_obj[lvl2_key[k]];
+                                lvl3_key = Object.keys(lvl2_obj);
+
+                                buff = '  ' + '  ' + lvl2_key[k] + ': ' + '\n';
+                                fs.appendFileSync(dFile, buff);
+
+                                // header 4
+                                for ( m=0; m< lvl3_key.length; m++ ) {
+                                        buff = '  ' + '    - ' + lvl3_key[m] + '=' +lvl2_obj[lvl3_key[m]] + '\n';
+                                        fs.appendFileSync(dFile, buff);
+                                }
+                        } else if ( ( lvl2_key[k] == 'image' ) || ( lvl2_key[k] == 'command' ) || ( lvl2_key[k] == 'working_dir' ) 
+                                    || ( lvl2_key[k] == 'restart') ) {
+                            buff = '  ' + '  ' + lvl2_key[k] + ': ' + lvl1_obj[lvl2_key[k]] + '\n';
+                            fs.appendFileSync(dFile, buff);
+                        } else if ( lvl2_key[k] == 'container_name' ) {
+                            buff = '  ' + '  ' + lvl2_key[k] + ': ' + tmp_name + '\n';
+                            fs.appendFileSync(dFile, buff);
+
                         } else {
                             buff = '  ' + '  ' + lvl2_key[k] + ': ' + '\n';
                             fs.appendFileSync(dFile, buff);

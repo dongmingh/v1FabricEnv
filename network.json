@@ -10,7 +10,8 @@
             "bridge",
     "services": {
         "zookeeper": {
-            "image": "zookeeper:3.4.9"
+            "image": "zookeeper:3.4.9",
+            "container_name": "zookeeper"
         },
         "kafka": {
             "image": "kchristidis/kafka",
@@ -21,7 +22,8 @@
             },
             "depends_on": [
                  "zookeeper"
-            ]
+            ],
+            "container_name": "kafka0"
         },
         "cop": {
             "image": "rameshthoomu/fabric-cop-x86_64",
@@ -42,8 +44,8 @@
                 "ORDERER_GENERAL_GENESISFILE": "./genesisblock",
                 "ORDERER_GENERAL_MAXWINDOWSIZE": "1000",
                 "ORDERER_RAMLEDGER_HISTORY_SIZE": "100",
-                "ORDERER_GENESIS_ORDERERTYPE": "kafka",
-                "ORDERER_Genesis_BATCHTIMEOUT": "10s",
+                "ORDERER_GENERAL_ORDERERTYPE": "kafka",
+                "ORDERER_GENERAL_BATCHTIMEOUT": "10s",
                 "ORDERER_GENERAL_BATCHSIZE_MAXMESSAGECOUNT": "10",
                 "ORDERER_KAFKA_BROKERS": "0.0.0.0:9092"
             },
@@ -53,6 +55,7 @@
                  "5005:5005"
             ],
             "depends_on": [
+                 "zookeeper",
                  "kafka0"
             ],
             "container_name": "orderer0",
@@ -65,6 +68,9 @@
             "command": "tini -- /docker-entrypoint.sh /opt/couchdb/bin/couchdb",
             "ports": [
                  "DBPORT:5984"
+            ],
+            "networks": [
+                 "bridge"
             ]
         },
         "peer": {
